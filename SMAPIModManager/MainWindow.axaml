@@ -5,5 +5,8 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="SMAPIModManager.MainWindow"
         Title="SMAPIModManager">
-    Welcome to Avalonia!
+    <StackPanel>
+        <TextBlock>Hello World!</TextBlock>
+        <Button Content="click me!" Click="onButtonPress"/>
+    </StackPanel>
 </Window>
