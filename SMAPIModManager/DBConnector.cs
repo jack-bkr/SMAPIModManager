@@ -12,7 +12,7 @@ public class DBConnector
     public static List<List<String>> SendSQL(string sql)
     {
         List<List<String>> result = new List<List<String>>();
-        Console.WriteLine("SQL: " + sql);
+        
         using (var connection = new SqliteConnection("Data Source=DB.db")) // define location of database
         {
             connection.Open();
@@ -36,5 +36,21 @@ public class DBConnector
             connection.Close();
         }
         return result;
+    }
+
+    public static bool SendDML(string sql)
+    {
+        using (var connection = new SqliteConnection("Data Source=DB.db")) // define location of database
+        {
+            connection.Open();
+
+            var command = connection.CreateCommand(); // assign SQL command to connection
+            command.CommandText = sql;
+
+            command.ExecuteNonQuery(); // execute SQL command
+
+            connection.Close();
+        }
+        return true;
     }
 }
