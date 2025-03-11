@@ -2,11 +2,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
         x:Class="SMAPIModManager.MainWindow"
-        Title="SMAPIModManager">
-    <StackPanel>
-        <TextBlock>Hello World!</TextBlock>
-        <Button Content="click me!" Click="onButtonPress"/>
-    </StackPanel>
+        Title="SMAPIModManager"
+        Width="400" Height="500">
+    
+    <Grid ColumnDefinitions="*, *, *, *" RowDefinitions="0.3*, 5*, *">
+        <TextBlock Grid.Row="0" Grid.Column="0">Hello, World!</TextBlock>
+        <Button Grid.Row="0" Grid.Column="1" Content="Refresh" Click="OnButtonPress"/>
+        <ScrollViewer Name="InstalledMods" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0"></ScrollViewer>
+    </Grid>
 </Window>

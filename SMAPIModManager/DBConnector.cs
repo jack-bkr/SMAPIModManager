@@ -28,7 +28,15 @@ public class DBConnector
                     List<String> row = new List<String>();
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        row.Add(reader.GetString(i));
+                        try
+                        {
+                            row.Add(reader.GetString(i));
+                        }
+                        catch (Exception)
+                        {
+                            row.Add("");
+                        }
+                        
                     }
                     result.Add(row);
                 }

@@ -2,8 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Skia.Helpers;
 
 namespace SMAPIModManager;
 
@@ -13,14 +19,15 @@ public class CurseForgeAPI
 
     public class Mod : CurseForgeAPI
     {
-        private int id { get; set; }
-        private string curseId { get; set; }
-        private string name { get; set; }
-        private string author { get; set; }
-        private string description { get; set; }
-        private string version { get; set; }
+        public int id { get; set; }
+        public string curseId { get; set; }
+        public string name { get; set; }
+        public string author { get; set; }
+        public string description { get; set; }
+        public string version { get; set; }
+        public Uri thumbnailUrl { get; set; }
         
-        public Mod(int id, string curseId, string name, string author, string description, string version)
+        public Mod(int id, string curseId, string name, string author, string description, string version, string thumbnailUrl)
         {
             this.id = id;
             this.curseId = curseId;
@@ -28,9 +35,17 @@ public class CurseForgeAPI
             this.author = author;
             this.description = description;
             this.version = version;
+            try
+            {
+                this.thumbnailUrl = new Uri(thumbnailUrl);
+            }
+            catch (UriFormatException)
+            {
+                this.thumbnailUrl = new Uri("https://www.curseforge.com/images/flame.svg");
+            }
         }
         
-        public Mod(string curseId, string name, string author, string description, string version)
+        public Mod(string curseId, string name, string author, string description, string version, string thumbnailUrl)
         {
             this.id = 0;
             this.curseId = curseId;
@@ -38,6 +53,7 @@ public class CurseForgeAPI
             this.author = author;
             this.description = description;
             this.version = version;
+            this.thumbnailUrl = new Uri(thumbnailUrl);
         }
 
         public void Print()
@@ -49,6 +65,22 @@ public class CurseForgeAPI
             Console.WriteLine(description);
             Console.WriteLine(version);
             Console.WriteLine();
+        }
+        
+        public async Task<Bitmap?> GetThumbnail()
+        {
+            try
+            {
+                var response = await client.GetAsync(thumbnailUrl);
+                response.EnsureSuccessStatusCode();
+                var data = await response.Content.ReadAsByteArrayAsync();
+                return new Bitmap(new MemoryStream(data));
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"An error occurred while downloading image '{thumbnailUrl}' : {ex.Message}");
+                return null;
+            }
         }
     }
     
@@ -95,18 +127,104 @@ public class CurseForgeAPI
     public async Task<List<Mod>> GetMods(string sort)
     {
         List<Mod> mods = new List<Mod>();
-        string responseBody = await SendRequest("v1/mods/search?gameId=669&sortField=" + sort);
+        string responseBody = await SendRequest("v1/mods/search?gameId=669&sortOrder=desc&sortField=" + sort);
         JsonElement data = JsonDocument.Parse(responseBody).RootElement.GetProperty("data");
         
         foreach (JsonElement mod in data.EnumerateArray())
         {
+            
             string name = mod.GetProperty("name").GetString();
             string author = mod.GetProperty("authors")[0].GetProperty("name").GetString();
             string description = mod.GetProperty("summary").GetString();
-            string version = "1.0.0";
+            string version = mod.GetProperty("latestFiles")[0].GetProperty("gameVersions")[0].GetString();
             string curseId = mod.GetProperty("id").GetInt32().ToString();
-            mods.Add(new Mod(curseId, name, author, description, version));
+            string thumbnailUrl = "https://www.curseforge.com/images/flame.svg";
+            try
+            {
+                thumbnailUrl = mod.GetProperty("logo").GetProperty("thumbnailUrl").GetString();
+            }
+            catch {}
+            
+            mods.Add(new Mod(curseId, name, author, description, version, thumbnailUrl));
         }
         return mods;
+    }
+    
+    public async void PopulateScrollViewer(ScrollViewer scrollViewer, List<Mod> mods)
+    {
+        StackPanel stackPanel = new StackPanel();
+        Boolean alternate = false;
+
+        foreach (Mod mod in mods)
+        {
+            Grid OuterGrid = new Grid()
+            {
+                Margin = new Thickness()
+            };
+            OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
+            OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(3, GridUnitType.Star));
+            if (alternate)
+            {
+                OuterGrid.Background = new SolidColorBrush(Colors.LightGray);
+                alternate = false;
+            }
+            else
+            {
+                alternate = true;
+            }
+            
+            Image thumbnail = new Image()
+            {
+                Source = await mod.GetThumbnail(),
+                Margin = new Thickness(1)
+            };
+            Grid.SetRow(thumbnail, 0);
+            
+            Grid InnerGrid = new Grid();
+            InnerGrid.RowDefinitions.Add(new RowDefinition());
+            InnerGrid.RowDefinitions.Add(new RowDefinition());
+            InnerGrid.RowDefinitions.Add(new RowDefinition());
+            InnerGrid.RowDefinitions.Add(new RowDefinition());
+            Grid.SetColumn(InnerGrid, 1);
+            
+            
+            TextBlock Name = new TextBlock()
+            {
+                Text = mod.name,
+                Margin = new Thickness(1)
+            };
+            Grid.SetRow(Name, 0);
+            
+            TextBlock Author = new TextBlock()
+            {
+                Text = mod.author,
+                Margin = new Thickness(1)
+            };
+            Grid.SetRow(Author, 1);
+            
+            TextBlock Description = new TextBlock()
+            {
+                Text = mod.description,
+                Margin = new Thickness(1)
+            };
+            Grid.SetRow(Description, 2);
+            
+            TextBlock Version = new TextBlock()
+            {
+                Text = mod.version,
+                Margin = new Thickness(1)
+            };
+            Grid.SetRow(Version, 3);
+            
+            InnerGrid.Children.Add(Name);
+            InnerGrid.Children.Add(Author);
+            InnerGrid.Children.Add(Description);
+            InnerGrid.Children.Add(Version);
+            
+            OuterGrid.Children.Add(thumbnail);
+            OuterGrid.Children.Add(InnerGrid);
+            stackPanel.Children.Add(OuterGrid);
+        }
+        scrollViewer.Content = stackPanel;
     }
 }
