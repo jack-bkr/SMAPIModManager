@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Skia.Helpers;
+using Avalonia.Platform;
 
 namespace SMAPIModManager;
 
@@ -25,7 +24,7 @@ public class CurseForgeAPI
         public string author { get; set; }
         public string description { get; set; }
         public string version { get; set; }
-        public Uri thumbnailUrl { get; set; }
+        public string thumbnailUrl { get; set; }
         
         public Mod(int id, string curseId, string name, string author, string description, string version, string thumbnailUrl)
         {
@@ -37,11 +36,11 @@ public class CurseForgeAPI
             this.version = version;
             try
             {
-                this.thumbnailUrl = new Uri(thumbnailUrl);
+                this.thumbnailUrl = thumbnailUrl;
             }
             catch (UriFormatException)
             {
-                this.thumbnailUrl = new Uri("https://www.curseforge.com/images/flame.svg");
+                this.thumbnailUrl = "noimg";
             }
         }
         
@@ -53,7 +52,11 @@ public class CurseForgeAPI
             this.author = author;
             this.description = description;
             this.version = version;
-            this.thumbnailUrl = new Uri(thumbnailUrl);
+            this.thumbnailUrl = "Assets/flame.png";
+            if (thumbnailUrl != "Assets/flame.png")
+            {
+                this.thumbnailUrl = thumbnailUrl;
+            }
         }
 
         public void Print()
@@ -68,18 +71,31 @@ public class CurseForgeAPI
         }
         
         public async Task<Bitmap?> GetThumbnail()
-        {
-            try
+        {  
+            if (File.Exists("cache/img/" + curseId + ".png"))
             {
-                var response = await client.GetAsync(thumbnailUrl);
-                response.EnsureSuccessStatusCode();
-                var data = await response.Content.ReadAsByteArrayAsync();
-                return new Bitmap(new MemoryStream(data));
-            }
-            catch (HttpRequestException ex)
+                return new Bitmap("cache/img/" + curseId + ".png");
+            } 
+            else if (thumbnailUrl.ToString() == "Assets/flame.png")
             {
-                Console.WriteLine($"An error occurred while downloading image '{thumbnailUrl}' : {ex.Message}");
-                return null;
+                return new Bitmap(AssetLoader.Open(new Uri("avares://SMAPIModManager/Assets/flame.png"), null));
+            } 
+            else 
+            {
+                try
+                {
+                    var response = await client.GetAsync(new Uri(thumbnailUrl));
+                    response.EnsureSuccessStatusCode();
+                    var data = await response.Content.ReadAsByteArrayAsync();
+                    Bitmap bmp = new Bitmap(new MemoryStream(data));
+                    bmp.Save("cache/img/" + curseId + ".png");
+                    return bmp;
+                }
+                catch (HttpRequestException ex)
+                {
+                    Console.WriteLine($"An error occurred while downloading image '{thumbnailUrl}' : {ex.Message}");
+                    return null;
+                }
             }
         }
     }
@@ -96,6 +112,7 @@ public class CurseForgeAPI
             string json = sr.ReadToEnd();
             dynamic settings = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
             client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.DefaultRequestHeaders.Add("x-api-key", settings["api-key"].ToString());
         }
@@ -132,18 +149,16 @@ public class CurseForgeAPI
         
         foreach (JsonElement mod in data.EnumerateArray())
         {
-            
             string name = mod.GetProperty("name").GetString();
             string author = mod.GetProperty("authors")[0].GetProperty("name").GetString();
             string description = mod.GetProperty("summary").GetString();
             string version = mod.GetProperty("latestFiles")[0].GetProperty("gameVersions")[0].GetString();
             string curseId = mod.GetProperty("id").GetInt32().ToString();
-            string thumbnailUrl = "https://www.curseforge.com/images/flame.svg";
-            try
+            string thumbnailUrl = "Assets/flame.png";
+            if (mod.GetProperty("logo").ValueKind != JsonValueKind.Null)
             {
                 thumbnailUrl = mod.GetProperty("logo").GetProperty("thumbnailUrl").GetString();
-            }
-            catch {}
+            } 
             
             mods.Add(new Mod(curseId, name, author, description, version, thumbnailUrl));
         }
@@ -220,7 +235,7 @@ public class CurseForgeAPI
             InnerGrid.Children.Add(Author);
             InnerGrid.Children.Add(Description);
             InnerGrid.Children.Add(Version);
-            
+
             OuterGrid.Children.Add(thumbnail);
             OuterGrid.Children.Add(InnerGrid);
             stackPanel.Children.Add(OuterGrid);
