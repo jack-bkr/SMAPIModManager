@@ -2,14 +2,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="750"
         x:Class="SMAPIModManager.MainWindow"
         Title="SMAPIModManager"
-        Width="400" Height="500">
+        Width="500" Height="750">
     
-    <Grid ColumnDefinitions="*, *, *, *" RowDefinitions="0.3*, 5*, *">
+    <Grid ColumnDefinitions="*, *, *, *, *" RowDefinitions="0.3*, 5*, *">
         <TextBlock Grid.Row="0" Grid.Column="0">Hello, World!</TextBlock>
-        <Button Grid.Row="0" Grid.Column="1" Content="Refresh" Click="OnButtonPress"/>
+        <ComboBox Name="SortCombo" Grid.Row="0" Grid.Column="1"></ComboBox>
+        <TextBox Name="SearchBox" Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2"></TextBox>
+        <Button Grid.Row="0" Grid.Column="4" Content="Search" Click="OnSearchPress"/>
+        
+        <Grid Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" RowDefinitions="3*, *, *, *, *">
+            
+        </Grid>
+        
         <ScrollViewer Name="InstalledMods" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0"></ScrollViewer>
     </Grid>
 </Window>

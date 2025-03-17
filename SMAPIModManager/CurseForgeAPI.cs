@@ -174,7 +174,8 @@ public class CurseForgeAPI
         {
             Grid OuterGrid = new Grid()
             {
-                Margin = new Thickness()
+                Margin = new Thickness(),
+                MaxHeight = 100,
             };
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(3, GridUnitType.Star));

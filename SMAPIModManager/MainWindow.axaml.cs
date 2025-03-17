@@ -24,7 +24,7 @@ public partial class MainWindow : Window
         }
     }
 
-    public async void OnButtonPress(object sender, RoutedEventArgs e)
+    public async void OnSearchPress(object sender, RoutedEventArgs e)
     {
         CurseForgeAPI api = new CurseForgeAPI();
         Console.WriteLine("Button pressed!");
