@@ -14,7 +14,7 @@ public partial class MainWindow : Window
         CheckCache();
     }
     
-    public void CheckCache()
+    public void CheckCache() // Check if the cache directory exists, if not create it
     {
         if (!Directory.Exists("cache"))
         {
@@ -24,19 +24,35 @@ public partial class MainWindow : Window
         }
     }
 
-    public async void OnSearchPress(object sender, RoutedEventArgs e)
+    public async void OnSearchPress(object sender, RoutedEventArgs e) 
     {
         CurseForgeAPI api = new CurseForgeAPI();
         Console.WriteLine("Button pressed!");
-        List<CurseForgeAPI.Mod> mods = await api.GetMods("6");
-        api.PopulateScrollViewer(this.FindControl<ScrollViewer>("InstalledMods"), mods);
-    }
-
-    public async void onModFocus(object sender, RoutedEventArgs e)
-    {
-        Console.WriteLine("Mod focused!");
-    }
-    
+        List<CurseForgeAPI.Mod> mods = new List<CurseForgeAPI.Mod>();
         
-    
+        // Get the sort index and search text
+        int sort = this.FindControl<ComboBox>("SortCombo").SelectedIndex;
+        string search = this.FindControl<TextBox>("SearchBox").Text;
+        
+        // Get the mods based on the sort index
+        switch (sort)
+        {
+            case 0:
+                mods = await api.GetMods("1", search); 
+                break;
+            case 1:
+                mods = await api.GetMods("2", search);
+                break;
+            case 2:
+                mods = await api.GetMods("6", search);
+                break;
+            case 3:
+                mods = await api.GetMods("12", search);
+                break;
+            case 4:
+                mods = await api.GetMods("3", search);
+                break;
+        }
+        api.PopulateScrollViewer(this.FindControl<ScrollViewer>("InstalledMods"), mods); // Populate the scroll viewer with the mods
+    }
 }

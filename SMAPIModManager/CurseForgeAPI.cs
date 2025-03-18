@@ -34,14 +34,7 @@ public class CurseForgeAPI
             this.author = author;
             this.description = description;
             this.version = version;
-            try
-            {
-                this.thumbnailUrl = thumbnailUrl;
-            }
-            catch (UriFormatException)
-            {
-                this.thumbnailUrl = "noimg";
-            }
+            this.thumbnailUrl = thumbnailUrl;
         }
         
         public Mod(string curseId, string name, string author, string description, string version, string thumbnailUrl)
@@ -52,14 +45,14 @@ public class CurseForgeAPI
             this.author = author;
             this.description = description;
             this.version = version;
-            this.thumbnailUrl = "Assets/flame.png";
+            this.thumbnailUrl = "Assets/flame.png"; // Default thumbnail
             if (thumbnailUrl != "Assets/flame.png")
             {
                 this.thumbnailUrl = thumbnailUrl;
             }
         }
 
-        public void Print()
+        public void Print() // Debugging method
         {
             Console.WriteLine(id);
             Console.WriteLine(curseId);
@@ -70,13 +63,13 @@ public class CurseForgeAPI
             Console.WriteLine();
         }
         
-        public async Task<Bitmap?> GetThumbnail()
+        public async Task<Bitmap?> GetThumbnail() // Get the thumbnail image
         {  
-            if (File.Exists("cache/img/" + curseId + ".png"))
+            if (File.Exists("cache/img/" + curseId + ".png")) // Check if the image is in the cache
             {
                 return new Bitmap("cache/img/" + curseId + ".png");
             } 
-            else if (thumbnailUrl.ToString() == "Assets/flame.png")
+            else if (thumbnailUrl.ToString() == "Assets/flame.png") // Check if the thumbnail is the default thumbnail
             {
                 return new Bitmap(AssetLoader.Open(new Uri("avares://SMAPIModManager/Assets/flame.png"), null));
             } 
@@ -84,14 +77,14 @@ public class CurseForgeAPI
             {
                 try
                 {
-                    var response = await client.GetAsync(new Uri(thumbnailUrl));
+                    var response = await client.GetAsync(new Uri(thumbnailUrl)); // Download the image
                     response.EnsureSuccessStatusCode();
                     var data = await response.Content.ReadAsByteArrayAsync();
                     Bitmap bmp = new Bitmap(new MemoryStream(data));
-                    bmp.Save("cache/img/" + curseId + ".png");
+                    bmp.Save("cache/img/" + curseId + ".png"); // Save the image to the cache
                     return bmp;
                 }
-                catch (HttpRequestException ex)
+                catch (HttpRequestException ex) // Catch any HTTP errors
                 {
                     Console.WriteLine($"An error occurred while downloading image '{thumbnailUrl}' : {ex.Message}");
                     return null;
@@ -105,7 +98,7 @@ public class CurseForgeAPI
         SetHeaders();
     }
     
-    private static void SetHeaders()
+    private static void SetHeaders() // Set the headers for the HTTP client
     {
         using (StreamReader sr = new StreamReader("settings.json"))
         {
@@ -121,8 +114,8 @@ public class CurseForgeAPI
     {
         try
         {
-            HttpResponseMessage response = await client.GetAsync("https://api.curseforge.com/" + URI);
-            if (response.IsSuccessStatusCode)
+            HttpResponseMessage response = await client.GetAsync("https://api.curseforge.com/" + URI); // Send the request
+            if (response.IsSuccessStatusCode) // Check if the request was successful
             {
                 string responseBody = await response.Content.ReadAsStringAsync();
                 return responseBody;
@@ -141,13 +134,13 @@ public class CurseForgeAPI
         return "";
     }
     
-    public async Task<List<Mod>> GetMods(string sort)
+    public async Task<List<Mod>> GetMods(string sort, string search)
     {
         List<Mod> mods = new List<Mod>();
-        string responseBody = await SendRequest("v1/mods/search?gameId=669&sortOrder=desc&sortField=" + sort);
-        JsonElement data = JsonDocument.Parse(responseBody).RootElement.GetProperty("data");
+        string responseBody = await SendRequest("v1/mods/search?gameId=669&sortOrder=desc&sortField=" + sort + "&searchFilter=" + search);
+        JsonElement data = JsonDocument.Parse(responseBody).RootElement.GetProperty("data"); // Parse the JSON response
         
-        foreach (JsonElement mod in data.EnumerateArray())
+        foreach (JsonElement mod in data.EnumerateArray()) // Loop through the mods
         {
             string name = mod.GetProperty("name").GetString();
             string author = mod.GetProperty("authors")[0].GetProperty("name").GetString();
@@ -155,12 +148,12 @@ public class CurseForgeAPI
             string version = mod.GetProperty("latestFiles")[0].GetProperty("gameVersions")[0].GetString();
             string curseId = mod.GetProperty("id").GetInt32().ToString();
             string thumbnailUrl = "Assets/flame.png";
-            if (mod.GetProperty("logo").ValueKind != JsonValueKind.Null)
+            if (mod.GetProperty("logo").ValueKind != JsonValueKind.Null) // Check if the mod has a thumbnail
             {
                 thumbnailUrl = mod.GetProperty("logo").GetProperty("thumbnailUrl").GetString();
             } 
             
-            mods.Add(new Mod(curseId, name, author, description, version, thumbnailUrl));
+            mods.Add(new Mod(curseId, name, author, description, version, thumbnailUrl)); // Add the mod to the list
         }
         return mods;
     }
@@ -170,16 +163,16 @@ public class CurseForgeAPI
         StackPanel stackPanel = new StackPanel();
         Boolean alternate = false;
 
-        foreach (Mod mod in mods)
+        foreach (Mod mod in mods) // Loop through the mods
         {
-            Grid OuterGrid = new Grid()
+            Grid OuterGrid = new Grid() // Create the outer grid, each row is 1 mod
             {
                 Margin = new Thickness(),
                 MaxHeight = 100,
             };
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(3, GridUnitType.Star));
-            if (alternate)
+            if (alternate) // Alternate the background color for readability
             {
                 OuterGrid.Background = new SolidColorBrush(Colors.LightGray);
                 alternate = false;
@@ -196,7 +189,7 @@ public class CurseForgeAPI
             };
             Grid.SetRow(thumbnail, 0);
             
-            Grid InnerGrid = new Grid();
+            Grid InnerGrid = new Grid(); // Create the inner grid for styling
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
@@ -232,13 +225,17 @@ public class CurseForgeAPI
             };
             Grid.SetRow(Version, 3);
             
+            // Add the elements to the inner grid
             InnerGrid.Children.Add(Name);
             InnerGrid.Children.Add(Author);
             InnerGrid.Children.Add(Description);
             InnerGrid.Children.Add(Version);
 
+            // Add the details and thumbnail to the outer grid row
             OuterGrid.Children.Add(thumbnail);
             OuterGrid.Children.Add(InnerGrid);
+            
+            // Add the outer grid to the stack panel
             stackPanel.Children.Add(OuterGrid);
         }
         scrollViewer.Content = stackPanel;
