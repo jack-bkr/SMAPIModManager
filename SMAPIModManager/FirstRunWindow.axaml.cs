@@ -31,15 +31,17 @@ public partial class FirstRunWindow : Window
     
     public void Confirm(object sender, RoutedEventArgs e)
     {
+        string result;
         using (StreamReader sr = new StreamReader("settings.json"))
         {
             string json = sr.ReadToEnd();
             dynamic settings = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
             settings["modsDirectory"] = this.FindControl<TextBox>("ModsFolder").Text;
             
-            string result = JsonSerializer.Serialize(settings);
-            File.WriteAllText("settings.json", result);
+            result = JsonSerializer.Serialize(settings);
         }
+        
+        File.WriteAllText("settings.json", result);
         
         var mainWindow = new MainWindow();
         mainWindow.Show();
