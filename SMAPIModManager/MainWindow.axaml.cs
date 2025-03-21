@@ -14,7 +14,7 @@ public partial class MainWindow : Window
         CheckCache();
     }
     
-    public void CheckCache() // Check if the cache directory exists, if not create it
+    public void CheckCache()
     {
         if (!Directory.Exists("cache"))
         {
@@ -23,7 +23,7 @@ public partial class MainWindow : Window
             Directory.CreateDirectory("cache/mods");
         }
     }
-
+    
     public async void OnSearchPress(object sender, RoutedEventArgs e) 
     {
         CurseForgeAPI api = new CurseForgeAPI();
@@ -55,4 +55,7 @@ public partial class MainWindow : Window
         }
         api.PopulateScrollViewer(this.FindControl<ScrollViewer>("InstalledMods"), mods); // Populate the scroll viewer with the mods
     }
+    
+        
+    
 }

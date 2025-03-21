@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="100"
+        x:Class="SMAPIModManager.FirstRunWindow"
+        Title="Select Mod Directory" Width="500" Height="100">
+    <Grid RowDefinitions="*,*,*" ColumnDefinitions="3*,*">
+        <Label Grid.Row="0" Grid.Column="0">Select Mods Folder: </Label>
+        <TextBox Grid.Row="1" Grid.Column="0" MaxHeight="10" Name="ModsFolder"></TextBox>
+        <Button Grid.Row="1" Grid.Column="1" MaxHeight="34" FontSize="15" Click="FolderPicker">Select Folder</Button>
+        <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="Confirm">Confirm</Button>
+    </Grid>
+</Window>
