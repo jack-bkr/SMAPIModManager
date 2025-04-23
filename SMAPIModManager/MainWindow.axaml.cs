@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -56,9 +57,23 @@ public partial class MainWindow : Window
         api.PopulateScrollViewer(this.FindControl<ScrollViewer>("ModsList"), mods); // Populate the scroll viewer with the mods
     }
     
-    public void download(object sender, RoutedEventArgs e)
+    async void installMod(object sender, RoutedEventArgs e)
     {
-        Console.WriteLine("Download button pressed!");
+        string modID = this.FindControl<Grid>("modInfo").Children[0].Name;
+        CurseForgeAPI api = new CurseForgeAPI();
+
+        string responseBody = await api.SendRequest($"v1/mods/{modID}");
+        JsonElement data = JsonDocument.Parse(responseBody).RootElement.GetProperty("data"); // Parse the JSON response
+        
+        string fileName = data.GetProperty("latestFiles")[0].GetProperty("fileName").GetString();
+        string downloadURL = data.GetProperty("latestFiles")[0].GetProperty("downloadUrl").GetString();
+        
+        await FileManager.downloadFile(downloadURL, fileName); // Download the mod file
+    }
+    
+    void deleteMod(object sender, RoutedEventArgs e)
+    {
+        Console.WriteLine("Delete button pressed!");
     }
     
 }

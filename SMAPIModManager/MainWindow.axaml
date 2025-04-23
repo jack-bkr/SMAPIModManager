@@ -24,8 +24,8 @@
         
         <Grid Grid.Row="1" Grid.Column="3" RowDefinitions="5*, *, *, *, *">
             <Grid Grid.Row="0" Name="modInfo"></Grid>
-            <Button FontSize="20" Grid.Row="1" Click="download">Install</Button>
-            <Button FontSize="20" Grid.Row="2">Delete</Button>
+            <Button Name="btnInstall" FontSize="20" Grid.Row="1" IsEnabled="False" Click="installMod">Install</Button>
+            <Button Name="btnDelete" FontSize="20" Grid.Row="2" IsEnabled="False" Click="deleteMod">Delete</Button>
             <Button FontSize="14" Grid.Row="3">Install/Update SMAPI</Button>
             <Button FontSize="15" Grid.Row="4">View Installed Mods</Button>
         </Grid>

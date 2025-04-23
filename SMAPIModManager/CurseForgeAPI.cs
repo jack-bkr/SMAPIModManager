@@ -168,8 +168,9 @@ public class CurseForgeAPI
         {
             Grid OuterGrid = new Grid() // Create the outer grid, each outer grid is 1 mod
             {
+                Name = mod.curseId,
                 Margin = new Thickness(),
-                MaxHeight = 100,
+                MaxHeight = 100
             };
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(3, GridUnitType.Star));
@@ -272,7 +273,8 @@ public class CurseForgeAPI
         Image infoThumbnail = new Image()
         {
             Source = thumbnail.Source,
-            Margin = new Thickness(2,2,0,2)
+            Margin = new Thickness(2,2,0,2),
+            Name = mod.Name
         };
         
         TextBlock modInfo = new TextBlock()
@@ -290,6 +292,8 @@ public class CurseForgeAPI
         
         modInfoGrid.Children.Add(infoThumbnail);
         modInfoGrid.Children.Add(modInfo);
+        
+        windowGrid.FindControl<Button>("btnInstall").IsEnabled = true;
 
         mod.Background = new SolidColorBrush(Colors.LimeGreen); // Change the background color of the mod
     }
