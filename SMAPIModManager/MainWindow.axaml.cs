@@ -53,9 +53,12 @@ public partial class MainWindow : Window
                 mods = await api.GetMods("3", search);
                 break;
         }
-        api.PopulateScrollViewer(this.FindControl<ScrollViewer>("InstalledMods"), mods); // Populate the scroll viewer with the mods
+        api.PopulateScrollViewer(this.FindControl<ScrollViewer>("ModsList"), mods); // Populate the scroll viewer with the mods
     }
     
-        
+    public void download(object sender, RoutedEventArgs e)
+    {
+        Console.WriteLine("Download button pressed!");
+    }
     
 }

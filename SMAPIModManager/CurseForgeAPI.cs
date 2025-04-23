@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -165,37 +166,42 @@ public class CurseForgeAPI
 
         foreach (Mod mod in mods) // Loop through the mods
         {
-            Grid OuterGrid = new Grid() // Create the outer grid, each row is 1 mod
+            Grid OuterGrid = new Grid() // Create the outer grid, each outer grid is 1 mod
             {
                 Margin = new Thickness(),
                 MaxHeight = 100,
             };
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(3, GridUnitType.Star));
-            if (alternate) // Alternate the background color for readability
-            {
-                OuterGrid.Background = new SolidColorBrush(Colors.LightGray);
-                alternate = false;
-            }
-            else
-            {
-                alternate = true;
-            }
+            OuterGrid.AddHandler(Grid.PointerPressedEvent, onModClick);
             
             Image thumbnail = new Image()
             {
                 Source = await mod.GetThumbnail(),
-                Margin = new Thickness(1)
+                Margin = new Thickness(2,2,0,2)
             };
             Grid.SetRow(thumbnail, 0);
             
-            Grid InnerGrid = new Grid(); // Create the inner grid for styling
+            Grid InnerGrid = new Grid()
+            {
+                Margin = new Thickness(0,2,2,2)
+            }; // Create the inner grid for styling
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             Grid.SetColumn(InnerGrid, 1);
             
+            if (alternate) // Alternate the background color for readability
+            {
+                InnerGrid.Background = new SolidColorBrush(Colors.Gray);
+                alternate = false;
+            }
+            else
+            {
+                InnerGrid.Background = new SolidColorBrush(Colors.DarkGray);
+                alternate = true;
+            }
             
             TextBlock Name = new TextBlock()
             {
@@ -239,5 +245,52 @@ public class CurseForgeAPI
             stackPanel.Children.Add(OuterGrid);
         }
         scrollViewer.Content = stackPanel;
+    }
+
+    void onModClick(object? sender, RoutedEventArgs e)
+    {
+        Grid mod = (Grid)sender;
+        Grid InnerGrid = (Grid)mod.Children[1];
+        Image thumbnail = (Image)mod.Children[0];
+        TextBlock name = (TextBlock)InnerGrid.Children[0];
+        
+        StackPanel stackPanel = (StackPanel)mod.Parent;
+        foreach (Grid modinfo in stackPanel.Children) // Loop through the mods
+        {
+            modinfo.Background = new SolidColorBrush(Colors.Transparent); // Reset the background color
+        }
+        
+        ScrollViewer scrollViewer = (ScrollViewer)stackPanel.Parent;
+        Grid windowGrid = (Grid)scrollViewer.Parent;
+
+        Grid modInfoGrid = windowGrid.FindControl<Grid>("modInfo");
+        modInfoGrid.RowDefinitions.Clear();
+        modInfoGrid.RowDefinitions.Add(new RowDefinition());
+        modInfoGrid.RowDefinitions.Add(new RowDefinition());
+        modInfoGrid.Children.Clear(); // Clear the mod info grid
+        
+        Image infoThumbnail = new Image()
+        {
+            Source = thumbnail.Source,
+            Margin = new Thickness(2,2,0,2)
+        };
+        
+        TextBlock modInfo = new TextBlock()
+        {
+            Text = ($"{((TextBlock)InnerGrid.Children[0]).Text} \n" +
+                    $"By {((TextBlock)InnerGrid.Children[1]).Text} \n \n" +
+                    $"{((TextBlock)InnerGrid.Children[2]).Text} \n \n" +
+                    $"{((TextBlock)InnerGrid.Children[3]).Text}"),
+            Margin = new Thickness(1),
+            TextWrapping = TextWrapping.Wrap
+        };
+        
+        Grid.SetRow(thumbnail, 0);
+        Grid.SetRow(modInfo, 1);
+        
+        modInfoGrid.Children.Add(infoThumbnail);
+        modInfoGrid.Children.Add(modInfo);
+
+        mod.Background = new SolidColorBrush(Colors.LimeGreen); // Change the background color of the mod
     }
 }

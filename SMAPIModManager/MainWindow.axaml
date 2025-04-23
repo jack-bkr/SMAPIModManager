@@ -7,7 +7,7 @@
         Title="SMAPIModManager"
         Width="500" Height="750">
     
-    <Grid ColumnDefinitions="*, *, *, 1.5*" RowDefinitions="0.3*, 5*, *">
+    <Grid ColumnDefinitions="*, *, *, 1.5*" RowDefinitions="0.3*, 5*">
         <Grid Grid.Row="0" Grid.Column="0" ColumnSpan="4" ColumnDefinitions="*, 2*, 0.5*">
             <ComboBox Name="SortCombo" Grid.Row="0" Grid.Column="0" SelectedIndex="2">
                 <ComboBoxItem Content="Featured"/>
@@ -20,13 +20,15 @@
             <Button Grid.Row="0" Grid.Column="2" Content="Search" Click="OnSearchPress"/>
         </Grid>
         
-        <Grid Grid.Row="1" Grid.Column="3" RowDefinitions="3*, *, *, *, *">
-            <Button Grid.Row="1"></Button>
-            <Button Grid.Row="2"></Button>
-            <Button Grid.Row="3"></Button>
-            <Button Grid.Row="4"></Button>
+        <ScrollViewer Name="ModsList" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0"></ScrollViewer>
+        
+        <Grid Grid.Row="1" Grid.Column="3" RowDefinitions="5*, *, *, *, *">
+            <Grid Grid.Row="0" Name="modInfo"></Grid>
+            <Button FontSize="20" Grid.Row="1" Click="download">Install</Button>
+            <Button FontSize="20" Grid.Row="2">Delete</Button>
+            <Button FontSize="14" Grid.Row="3">Install/Update SMAPI</Button>
+            <Button FontSize="15" Grid.Row="4">View Installed Mods</Button>
         </Grid>
         
-        <ScrollViewer Name="InstalledMods" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0"></ScrollViewer>
     </Grid>
 </Window>
