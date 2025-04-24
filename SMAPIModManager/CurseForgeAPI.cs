@@ -22,8 +22,9 @@ public class CurseForgeAPI
         public string description { get; set; }
         public string version { get; set; }
         public string thumbnailUrl { get; set; }
+        public string downloadUrl { get; set; }
         
-        public Mod(int id, string curseId, string name, string author, string description, string version, string thumbnailUrl)
+        public Mod(int id, string curseId, string name, string author, string description, string version, string thumbnailUrl, string downloadUrl)
         {
             this.id = id;
             this.curseId = curseId;
@@ -32,9 +33,10 @@ public class CurseForgeAPI
             this.description = description;
             this.version = version;
             this.thumbnailUrl = thumbnailUrl;
+            this.downloadUrl = downloadUrl;
         }
         
-        public Mod(string curseId, string name, string author, string description, string version, string thumbnailUrl)
+        public Mod(string curseId, string name, string author, string description, string version, string thumbnailUrl, string downloadUrl)
         {
             this.id = 0;
             this.curseId = curseId;
@@ -47,6 +49,7 @@ public class CurseForgeAPI
             {
                 this.thumbnailUrl = thumbnailUrl;
             }
+            this.downloadUrl = downloadUrl;
         }
 
         public void Print() // Debugging method
@@ -57,6 +60,8 @@ public class CurseForgeAPI
             Console.WriteLine(author);
             Console.WriteLine(description);
             Console.WriteLine(version);
+            Console.WriteLine(thumbnailUrl);
+            Console.WriteLine(downloadUrl);
             Console.WriteLine();
         }
         
@@ -139,19 +144,33 @@ public class CurseForgeAPI
         
         foreach (JsonElement mod in data.EnumerateArray()) // Loop through the mods
         {
-            string name = mod.GetProperty("name").GetString();
-            string author = mod.GetProperty("authors")[0].GetProperty("name").GetString();
-            string description = mod.GetProperty("summary").GetString();
-            string version = mod.GetProperty("latestFiles")[0].GetProperty("gameVersions")[0].GetString();
-            string curseId = mod.GetProperty("id").GetInt32().ToString();
-            string thumbnailUrl = "Assets/flame.png";
-            if (mod.GetProperty("logo").ValueKind != JsonValueKind.Null) // Check if the mod has a thumbnail
-            {
-                thumbnailUrl = mod.GetProperty("logo").GetProperty("thumbnailUrl").GetString();
-            } 
-            
-            mods.Add(new Mod(curseId, name, author, description, version, thumbnailUrl)); // Add the mod to the list
+            mods.Add(FormatMod(mod)); // Add the mod to the list
         }
         return mods;
+    }
+    
+    public async Task<Mod> GetMod(string modId)
+    {
+        string responseBody = await SendRequest("v1/mods/" + modId);
+        JsonElement data = JsonDocument.Parse(responseBody).RootElement.GetProperty("data"); // Parse the JSON response
+        
+        return FormatMod(data); // Return the mod
+    }
+
+    public Mod FormatMod(JsonElement mod)   // Extract data from JSON response and return a new mod
+    {
+        string name = mod.GetProperty("name").GetString();
+        string author = mod.GetProperty("authors")[0].GetProperty("name").GetString();
+        string description = mod.GetProperty("summary").GetString();
+        string version = mod.GetProperty("latestFiles")[0].GetProperty("gameVersions")[0].GetString();
+        string curseId = mod.GetProperty("id").GetInt32().ToString();
+        string thumbnailUrl = "Assets/flame.png";
+        if (mod.GetProperty("logo").ValueKind != JsonValueKind.Null) // Check if the mod has a thumbnail
+        {
+            thumbnailUrl = mod.GetProperty("logo").GetProperty("thumbnailUrl").GetString();
+        }
+        string downloadUrl = mod.GetProperty("latestFiles")[0].GetProperty("downloadUrl").GetString();
+        
+        return new Mod(curseId, name, author, description, version, thumbnailUrl, downloadUrl); // Return the mod
     }
 }

@@ -10,8 +10,9 @@ public class FileManager
 {
     private static readonly HttpClient client = new HttpClient();
 
-    public static async Task downloadFile(string URL, string fileName)
+    public static async Task downloadFile(string URL)
     {
+        string fileName = Path.GetFileName(URL);
         var filePath = Path.Combine($"cache/mods/{fileName}");
         
         var progress = new Progress<float>(); // Setup progress reporter
