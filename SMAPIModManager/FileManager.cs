@@ -10,7 +10,7 @@ public class FileManager
 {
     private static readonly HttpClient client = new HttpClient();
 
-    async public static Task downloadFile(string URL, string fileName)
+    public static async Task downloadFile(string URL, string fileName)
     {
         var filePath = Path.Combine($"cache/mods/{fileName}");
         
@@ -23,7 +23,7 @@ public class FileManager
         }
     }
 
-    static void Progress_ProgressChanged (object sender, float progress)
+    private static void Progress_ProgressChanged (object sender, float progress)
     {
         // Do something with your progress
         Console.WriteLine (progress);

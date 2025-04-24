@@ -54,7 +54,7 @@ public partial class MainWindow : Window
                 mods = await api.GetMods("3", search);
                 break;
         }
-        api.PopulateScrollViewer(this.FindControl<ScrollViewer>("ModsList"), mods); // Populate the scroll viewer with the mods
+        DynamicUI.PopulateScrollViewer(this.FindControl<ScrollViewer>("ModsList"), mods); // Populate the scroll viewer with the mods
     }
     
     async void installMod(object sender, RoutedEventArgs e)
