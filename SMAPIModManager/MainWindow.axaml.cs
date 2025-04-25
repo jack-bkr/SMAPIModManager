@@ -12,6 +12,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         CheckCache();
+        OnSearchPress(null, null);
     }
     
     public void CheckCache()
@@ -63,7 +64,8 @@ public partial class MainWindow : Window
         CurseForgeAPI api = new CurseForgeAPI();
         CurseForgeAPI.Mod mod = await api.GetMod(modID); // Get the mod object
         
-        await FileManager.downloadFile(mod.downloadUrl); // Download the mod file
+        Window installDialog = new InstallDialog(mod); // Create the install dialog
+        installDialog.Show(); // Show the install dialog
     }
     
     void deleteMod(object sender, RoutedEventArgs e)
