@@ -43,12 +43,12 @@ public partial class InstallDialog : Window
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Process.Start(mod.installPath + "install on macOS.command");
+                Process.Start(Directory.GetCurrentDirectory() + mod.installPath + "install on macOS.command");
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Process.Start(mod.installPath + "install on Windows.bat");
+                Process.Start(Directory.GetCurrentDirectory() + mod.installPath + "install on Windows.bat");
             }
         }
         else
