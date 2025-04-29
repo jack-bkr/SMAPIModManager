@@ -14,6 +14,8 @@ public static class DynamicUI
     {
         StackPanel stackPanel = new StackPanel();
         Boolean alternate = false;
+        
+        scrollViewer.Content = stackPanel;
 
         foreach (CurseForgeAPI.Mod mod in mods) // Loop through the mods
         {
@@ -26,24 +28,24 @@ public static class DynamicUI
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
             OuterGrid.ColumnDefinitions.Add(new ColumnDefinition(3, GridUnitType.Star));
             OuterGrid.AddHandler(Grid.PointerPressedEvent, OnModClick);
-            
+
             Image thumbnail = new Image()
             {
                 Source = await mod.GetThumbnail(),
-                Margin = new Thickness(2,2,0,2)
+                Margin = new Thickness(2, 2, 0, 2)
             };
             Grid.SetRow(thumbnail, 0);
-            
+
             Grid InnerGrid = new Grid()
             {
-                Margin = new Thickness(0,2,2,2)
+                Margin = new Thickness(0, 2, 2, 2)
             }; // Create the inner grid for styling
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             InnerGrid.RowDefinitions.Add(new RowDefinition());
             Grid.SetColumn(InnerGrid, 1);
-            
+
             if (alternate) // Alternate the background color for readability
             {
                 InnerGrid.Background = new SolidColorBrush(Colors.Gray);
@@ -54,35 +56,35 @@ public static class DynamicUI
                 InnerGrid.Background = new SolidColorBrush(Colors.DarkGray);
                 alternate = true;
             }
-            
+
             TextBlock Name = new TextBlock()
             {
                 Text = mod.name,
                 Margin = new Thickness(1)
             };
             Grid.SetRow(Name, 0);
-            
+
             TextBlock Author = new TextBlock()
             {
                 Text = mod.author,
                 Margin = new Thickness(1)
             };
             Grid.SetRow(Author, 1);
-            
+
             TextBlock Description = new TextBlock()
             {
                 Text = mod.description,
                 Margin = new Thickness(1)
             };
             Grid.SetRow(Description, 2);
-            
+
             TextBlock Version = new TextBlock()
             {
                 Text = mod.version,
                 Margin = new Thickness(1)
             };
             Grid.SetRow(Version, 3);
-            
+
             // Add the elements to the inner grid
             InnerGrid.Children.Add(Name);
             InnerGrid.Children.Add(Author);
@@ -92,11 +94,10 @@ public static class DynamicUI
             // Add the details and thumbnail to the outer grid row
             OuterGrid.Children.Add(thumbnail);
             OuterGrid.Children.Add(InnerGrid);
-            
+
             // Add the outer grid to the stack panel
             stackPanel.Children.Add(OuterGrid);
         }
-        scrollViewer.Content = stackPanel;
     }
 
     static void OnModClick(object? sender, RoutedEventArgs e)

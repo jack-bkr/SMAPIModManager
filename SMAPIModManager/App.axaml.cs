@@ -32,12 +32,9 @@ public partial class App : Application
 
     public static bool Init()
     {
-        if (!Directory.Exists("cache"))
-        {
-            Directory.CreateDirectory("cache");
-            Directory.CreateDirectory("cache/img");
-            Directory.CreateDirectory("cache/mods");
-        }
+        Directory.CreateDirectory("cache/img");
+        Directory.CreateDirectory("cache/mods");
+
 
         if (!File.Exists("DB.db"))
         {

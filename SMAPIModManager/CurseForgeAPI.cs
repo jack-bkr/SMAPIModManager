@@ -23,8 +23,9 @@ public class CurseForgeAPI
         public string version { get; set; }
         public string thumbnailUrl { get; set; }
         public string downloadUrl { get; set; }
+        public string installPath { get; set; }
         
-        public Mod(int id, string curseId, string name, string author, string description, string version, string thumbnailUrl, string downloadUrl)
+        public Mod(int id, string curseId, string name, string author, string description, string version, string thumbnailUrl, string downloadUrl, string installPath)
         {
             this.id = id;
             this.curseId = curseId;
@@ -34,6 +35,7 @@ public class CurseForgeAPI
             this.version = version;
             this.thumbnailUrl = thumbnailUrl;
             this.downloadUrl = downloadUrl;
+            this.installPath = installPath;
         }
         
         public Mod(string curseId, string name, string author, string description, string version, string thumbnailUrl, string downloadUrl)
@@ -50,6 +52,7 @@ public class CurseForgeAPI
                 this.thumbnailUrl = thumbnailUrl;
             }
             this.downloadUrl = downloadUrl;
+            this.installPath = "";
         }
 
         public void Print() // Debugging method
@@ -65,13 +68,13 @@ public class CurseForgeAPI
             Console.WriteLine();
         }
         
-        public async Task<Bitmap?> GetThumbnail() // Get the thumbnail image
+        public async Task<Bitmap> GetThumbnail() // Get the thumbnail image
         {  
             if (File.Exists("cache/img/" + curseId + ".png")) // Check if the image is in the cache
             {
                 return new Bitmap("cache/img/" + curseId + ".png");
             } 
-            else if (thumbnailUrl.ToString() == "Assets/flame.png") // Check if the thumbnail is the default thumbnail
+            else if (thumbnailUrl == "Assets/flame.png") // Check if the thumbnail is the default thumbnail
             {
                 return new Bitmap(AssetLoader.Open(new Uri("avares://SMAPIModManager/Assets/flame.png"), null));
             } 
@@ -82,9 +85,13 @@ public class CurseForgeAPI
                     var response = await client.GetAsync(new Uri(thumbnailUrl)); // Download the image
                     response.EnsureSuccessStatusCode();
                     var data = await response.Content.ReadAsByteArrayAsync();
-                    Bitmap bmp = new Bitmap(new MemoryStream(data));
-                    bmp.Save("cache/img/" + curseId + ".png"); // Save the image to the cache
-                    return bmp;
+                    using (var memoryStream = new MemoryStream(data))
+                    using (var fileStream = new FileStream($"./cache/img/{curseId}.png", FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        Bitmap bmp = new Bitmap(memoryStream);
+                        bmp.Save(fileStream); // Save the image to the cache
+                        return bmp;
+                    }
                 }
                 catch (HttpRequestException ex) // Catch any HTTP errors
                 {
@@ -92,6 +99,14 @@ public class CurseForgeAPI
                     return null;
                 }
             }
+        }
+
+        public void Save()
+        {
+            string query = "INSERT INTO Installed (CurseforgeID, Name, Author, Description, Version, thumbnailUrl, downloadUrl) " +
+                           $"VALUES (\"{curseId}\", \"{name}\", \"{author}\", \"{description}\", \"{version}\", \"{thumbnailUrl}\", \"{downloadUrl}\");";
+        
+            DBConnector.SendDML(query);
         }
     }
     
