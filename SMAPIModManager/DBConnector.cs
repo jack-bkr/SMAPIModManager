@@ -43,7 +43,7 @@ public class DBConnector
         return result;
     }
 
-    public static bool SendDML(string sql)
+    public static void SendDML(string sql)
     {
         using (var connection = new SqliteConnection("Data Source=DB.db")) // define location of database
         {
@@ -56,6 +56,5 @@ public class DBConnector
 
             connection.Close();
         }
-        return true;
     }
 }

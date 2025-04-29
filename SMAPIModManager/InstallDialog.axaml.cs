@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using HttpClientProgress;
 
 namespace SMAPIModManager;
@@ -18,15 +18,47 @@ public partial class InstallDialog : Window
     string cacheFilePath;
     string installFilePath;
     private string modsPath;
+    private static readonly HttpClient client = new HttpClient();
     
     public InstallDialog(CurseForgeAPI.Mod mod)
     {
         InitializeComponent();
-        
+        Run(mod);
+    }
+
+    private async void Run(CurseForgeAPI.Mod mod)
+    {
         setModsPath();
         
         this.FindControl<Label>("modLbl").Content = mod.name; // Set the mod name
-        downloadFile(mod);
+        await downloadFile(mod);
+        installMod(mod);
+
+        if (mod.curseId == "898372")
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start(Directory.GetCurrentDirectory() + mod.installPath + "install on Linux.sh");
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start(mod.installPath + "install on macOS.command");
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(mod.installPath + "install on Windows.bat");
+            }
+        }
+        else
+        {
+            mod.Save();
+        }
+        
+
+        await Task.Delay(400);
+        this.Close();
     }
     
     private void setModsPath()
@@ -38,33 +70,41 @@ public partial class InstallDialog : Window
             modsPath = settings["modsDirectory"];
         }
     }
-    
-    private static readonly HttpClient client = new HttpClient();
 
-    public async Task downloadFile(CurseForgeAPI.Mod mod)
+    private async Task downloadFile(CurseForgeAPI.Mod mod)
     {
         string URL = mod.downloadUrl;
         Console.WriteLine($"Downloading {URL}"); // Debugging
         
         string fileName = Path.GetFileName(URL);
         cacheFilePath = Path.Combine($"cache/mods/{fileName.Replace("%20", " ")}");
-        
-        var progress = new Progress<float>(); // Setup progress reporter
-        progress.ProgressChanged += Download_ProgressChanged;
-        
-        using (var file = new FileStream(cacheFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-        {   // use HttpClient Progress extension method
-            await client.DownloadDataAsync(URL, file, progress);
-        }
 
-        installMod(mod);
+        if (!File.Exists(cacheFilePath))    // Check if file already exists, skip download if it does
+        {
+            var progress = new Progress<float>(); // Setup progress reporter
+            progress.ProgressChanged += Download_ProgressChanged;
+
+            using (var file = new FileStream(cacheFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                // use HttpClient Progress extension method
+                await client.DownloadDataAsync(URL, file, progress);
+            }
+        }
     }
 
-    public void installMod(CurseForgeAPI.Mod mod)
+    private void installMod(CurseForgeAPI.Mod mod)
     {
         using (ZipArchive archive = ZipFile.OpenRead(cacheFilePath))
         {
-            mod.installPath = modsPath + "/" + archive.Entries[0].FullName.Split("/")[0]; // Get the install path from the zip file
+            if (mod.curseId == "898372")    // if SMAPI install to cache
+            {
+                mod.installPath = "/cache/" + archive.Entries[0].FullName.Split("/")[0] + "/";
+            }
+            else
+            {
+                mod.installPath = modsPath + "/" + archive.Entries[0].FullName.Split("/")[0]; // Get the install path from the zip file
+            }
+            
             Console.WriteLine($"Installing {cacheFilePath} to {mod.installPath}"); // Debugging
             
             float entryCount = archive.Entries.Count;
@@ -73,8 +113,17 @@ public partial class InstallDialog : Window
             
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
-                string entryPath = Path.Combine(modsPath, entry.FullName);
+                string entryPath;
                 
+                if (mod.curseId == "898372")    // check if mod is SMAPI
+                {
+                    entryPath = "cache/" + entry.FullName;
+                }
+                else
+                {
+                    entryPath = Path.Combine(modsPath, entry.FullName);
+                }
+
                 if (entry.FullName.EndsWith("/"))
                 {
                     // If the entry is a directory, create it
@@ -93,8 +142,6 @@ public partial class InstallDialog : Window
             
             }
         }
-        
-        mod.Save();
     }
     
     private void Download_ProgressChanged (object sender, float progress)

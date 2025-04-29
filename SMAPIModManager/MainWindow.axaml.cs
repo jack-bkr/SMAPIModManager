@@ -57,12 +57,24 @@ public partial class MainWindow : Window
         DynamicUI.PopulateScrollViewer(this.FindControl<ScrollViewer>("ModsList"), mods); // Populate the scroll viewer with the mods
     }
     
-    async void installMod(object sender, RoutedEventArgs e)
+    async void installMod(object? sender, RoutedEventArgs e)
     {
-        string modID = this.FindControl<Grid>("modInfo").Children[0].Name;
+        string modID;
+        Button button = (Button)sender;
+        if (button.Name == "btnSMAPI")
+        {
+            modID = "898372";
+        }
+        else
+        {
+            modID = this.FindControl<Grid>("modInfo").Children[0].Name;
+        }
         
         CurseForgeAPI api = new CurseForgeAPI();
         CurseForgeAPI.Mod mod = await api.GetMod(modID); // Get the mod object
+        
+        this.FindControl<Button>("btnInstall").IsEnabled = false;
+        this.FindControl<Button>("btnDelete").IsEnabled = true;
         
         Window installDialog = new InstallDialog(mod); // Create the install dialog
         installDialog.Show(); // Show the install dialog
@@ -71,6 +83,11 @@ public partial class MainWindow : Window
     void deleteMod(object sender, RoutedEventArgs e)
     {
         Console.WriteLine("Delete button pressed!");
+    }
+
+    void installedToggle(object sender, RoutedEventArgs e)
+    {
+        
     }
     
 }

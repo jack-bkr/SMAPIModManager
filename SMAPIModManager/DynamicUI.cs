@@ -19,6 +19,11 @@ public static class DynamicUI
 
         foreach (CurseForgeAPI.Mod mod in mods) // Loop through the mods
         {
+            if (mod.curseId == "898372")    // Skip showing SMAPI as it has its own install/update button
+            {
+                continue;
+            }
+            
             Grid OuterGrid = new Grid() // Create the outer grid, each outer grid is 1 mod
             {
                 Name = mod.curseId,
@@ -151,8 +156,20 @@ public static class DynamicUI
         modInfoGrid.Children.Add(infoThumbnail);
         modInfoGrid.Children.Add(modInfoSV);
         
-        windowGrid.FindControl<Button>("btnInstall").IsEnabled = true;
+        List<List<String>> result = DBConnector.SendSQL($"select * from Installed where CurseforgeID = \"{mod.Name}\"");
 
+        if (result.Count == 0)
+        {
+            windowGrid.FindControl<Button>("btnInstall").IsEnabled = true;
+            windowGrid.FindControl<Button>("btnDelete").IsEnabled = false;
+        }
+        else
+        {
+            windowGrid.FindControl<Button>("btnInstall").IsEnabled = false;
+            windowGrid.FindControl<Button>("btnDelete").IsEnabled = true;
+        }
+        
         mod.Background = new SolidColorBrush(Colors.LimeGreen); // Change the background color of the mod
     }
+    //CurseForgeAPI.Mod dbMod = new CurseForgeAPI.Mod(Convert.ToInt32(result[0][0]), result[0][1],  result[0][2],  result[0][3],  result[0][4], result[0][5], result[0][6],  result[0][7],  result[0][8]);
 }

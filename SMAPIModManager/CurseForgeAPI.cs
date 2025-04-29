@@ -103,8 +103,8 @@ public class CurseForgeAPI
 
         public void Save()
         {
-            string query = "INSERT INTO Installed (CurseforgeID, Name, Author, Description, Version, thumbnailUrl, downloadUrl) " +
-                           $"VALUES (\"{curseId}\", \"{name}\", \"{author}\", \"{description}\", \"{version}\", \"{thumbnailUrl}\", \"{downloadUrl}\");";
+            string query = "INSERT INTO Installed (CurseforgeID, Name, Author, Description, Version, thumbnailUrl, downloadUrl, installPath) " +
+                           $"VALUES (\"{curseId}\", \"{name}\", \"{author}\", \"{description}\", \"{version}\", \"{thumbnailUrl}\", \"{downloadUrl}\", \"{installPath}\");";
         
             DBConnector.SendDML(query);
         }
