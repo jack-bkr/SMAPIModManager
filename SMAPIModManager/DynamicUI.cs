@@ -171,5 +171,17 @@ public static class DynamicUI
         
         mod.Background = new SolidColorBrush(Colors.LimeGreen); // Change the background color of the mod
     }
-    //CurseForgeAPI.Mod dbMod = new CurseForgeAPI.Mod(Convert.ToInt32(result[0][0]), result[0][1],  result[0][2],  result[0][3],  result[0][4], result[0][5], result[0][6],  result[0][7],  result[0][8]);
+
+    public static void PopulateInstalledMods(ScrollViewer scrollViewer)
+    {
+        List<CurseForgeAPI.Mod> mods = new List<CurseForgeAPI.Mod>();
+        List<List<String>> result = DBConnector.SendSQL("SELECT * FROM Installed");
+        
+        foreach( List<String> row in result)
+        {
+            mods.Add(new CurseForgeAPI.Mod(Convert.ToInt32(row[0]), row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]));
+        }
+        
+        PopulateScrollViewer(scrollViewer, mods);
+    } 
 }

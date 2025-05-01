@@ -2,12 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
 
 namespace SMAPIModManager;
 
 public partial class MainWindow : Window
 {
+    bool viewInstalled = false; // Used to toggle between viewing installed mods and CurseForge mods
+    
     public MainWindow()
     {
         InitializeComponent();
@@ -28,7 +33,6 @@ public partial class MainWindow : Window
     public async void OnSearchPress(object sender, RoutedEventArgs e) 
     {
         CurseForgeAPI api = new CurseForgeAPI();
-        Console.WriteLine("Button pressed!");
         List<CurseForgeAPI.Mod> mods = new List<CurseForgeAPI.Mod>();
         
         // Get the sort index and search text
@@ -57,6 +61,14 @@ public partial class MainWindow : Window
         DynamicUI.PopulateScrollViewer(this.FindControl<ScrollViewer>("ModsList"), mods); // Populate the scroll viewer with the mods
     }
     
+    public void SearchBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) // Check if the enter key was pressed
+        {
+            OnSearchPress(sender, e);
+        }
+    }
+    
     async void installMod(object? sender, RoutedEventArgs e)
     {
         string modID;
@@ -82,12 +94,46 @@ public partial class MainWindow : Window
     
     void deleteMod(object sender, RoutedEventArgs e)
     {
-        Console.WriteLine("Delete button pressed!");
+        string modID = this.FindControl<Grid>("modInfo").Children[0].Name;
+        ScrollViewer scrollViewer = this.FindControl<ScrollViewer>("ModsList");
+        
+        List<List<String>> result = DBConnector.SendSQL($"select installPath, Name from Installed where CurseforgeID = \"{modID}\"");
+        string installPath = result[0][0];
+        string modName = result[0][1];
+        
+        DBConnector.SendDML($"delete from Installed where CurseforgeID = \"{modID}\""); // Delete the mod from the database
+        Directory.Delete(installPath, true);    // Delete the mod's directory
+        if (viewInstalled)
+        {
+            scrollViewer.Content = null;
+            DynamicUI.PopulateInstalledMods(scrollViewer); // Refresh the installed mods list
+        }
+        
+        this.FindControl<Button>("btnInstall").IsEnabled = true;
+        this.FindControl<Button>("btnDelete").IsEnabled = false;
+        
+        var box = MessageBoxManager.GetMessageBoxStandard("Caption", $"{modName} has been deleted", ButtonEnum.Ok);    // Show message box
+        box.ShowAsync();
     }
 
     void installedToggle(object sender, RoutedEventArgs e)
     {
+        Button toggleBtn = (Button)sender;
         
+        if (viewInstalled)
+        {
+            OnSearchPress( null, null);
+            toggleBtn.Content = "View Installed Mods";
+            this.FindControl<Button>("btnSearch").IsEnabled = true; // Enable search button for installed mods
+            viewInstalled = false;
+        }
+        else
+        {
+            DynamicUI.PopulateInstalledMods(this.FindControl<ScrollViewer>("ModsList"));
+            toggleBtn.Content = "View CurseForge Mods";
+            this.FindControl<Button>("btnSearch").IsEnabled = true; // Disable search button for installed mods
+            viewInstalled = true;
+        }
     }
     
 }
