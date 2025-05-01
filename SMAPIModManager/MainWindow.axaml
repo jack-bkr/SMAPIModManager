@@ -16,8 +16,8 @@
                 <ComboBoxItem Content="Rating"/>
                 <ComboBoxItem Content="Last Updated"/>
             </ComboBox>
-            <TextBox Name="SearchBox" Grid.Row="0" Grid.Column="1"></TextBox>
-            <Button Grid.Row="0" Grid.Column="2" Content="Search" Click="OnSearchPress"/>
+            <TextBox Name="SearchBox" Grid.Row="0" Grid.Column="1" KeyDown="SearchBox_KeyDown"></TextBox>
+            <Button Grid.Row="0" Grid.Column="2" Name="btnSearch" Click="OnSearchPress">Search</Button>
         </Grid>
         
         <ScrollViewer Name="ModsList" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0"></ScrollViewer>

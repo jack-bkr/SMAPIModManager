@@ -72,7 +72,14 @@ public class CurseForgeAPI
         {  
             if (File.Exists("cache/img/" + curseId + ".png")) // Check if the image is in the cache
             {
-                return new Bitmap("cache/img/" + curseId + ".png");
+                try
+                {
+                    return new Bitmap("cache/img/" + curseId + ".png");
+                }
+                catch (Exception e)
+                {
+                    return new Bitmap(AssetLoader.Open(new Uri("avares://SMAPIModManager/Assets/flame.png"), null));
+                }
             } 
             else if (thumbnailUrl == "Assets/flame.png") // Check if the thumbnail is the default thumbnail
             {
@@ -159,6 +166,10 @@ public class CurseForgeAPI
         
         foreach (JsonElement mod in data.EnumerateArray()) // Loop through the mods
         {
+            if (mod.GetProperty("links").GetProperty("websiteUrl").GetString().Contains("modpacks"))    // Check if the mod is a modpack
+            {
+                continue;   // Skip the modpack
+            }
             mods.Add(FormatMod(mod)); // Add the mod to the list
         }
         return mods;
